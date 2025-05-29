@@ -98,6 +98,7 @@ function keyPressed() {
 
   if (key === ' ' && player.onGround()) {
     player.jump();
+    return false;  // Prevent scrolling on space
   }
 
   if (gameOver && (key === 'r' || key === 'R')) {
@@ -116,11 +117,11 @@ function touchStarted() {
   } else if (gameOver) {
     resetGame();
   }
-  return true;
+  return false;  // Prevent scrolling on mobile tap
 }
 
 function mousePressed() {
-  touchStarted(); // For some devices that trigger mousePressed on touch
+  touchStarted(); // For devices that trigger mousePressed on touch
 }
 
 function windowResized() {
