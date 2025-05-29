@@ -22,6 +22,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   player = new Player();
+  player.x = width * 0.1;
 }
 
 function draw() {
@@ -31,11 +32,10 @@ function draw() {
     textAlign(CENTER, CENTER);
     textSize(60);
     fill(0);
-    text("LEVEL UP MAX!", width / 2, height / 2 - 100);
-
+    text("Max's Runner", width / 2, height / 2 - 100);
     textSize(24);
     fill(50);
-    text("Press SPACE to Start", width / 2, height / 2);
+    text("Tap or Press SPACE to Start", width / 2, height / 2);
     return;
   }
 
@@ -48,9 +48,9 @@ function draw() {
   }
 
   gameSpeed = 6 + speedMultiplier * 5;
-  speedMultiplier += 0.001;
 
   if (!gameOver) {
+    speedMultiplier += 0.001;
     player.update();
     player.display();
 
@@ -75,39 +75,57 @@ function draw() {
       }
     }
 
-    textAlign(LEFT, TOP); // For score in top-left
     fill(0);
     textSize(24);
     text("Score: " + score, 10, 30);
-
   } else {
-    textAlign(CENTER, CENTER); // Center Game Over Screen
     textSize(48);
     fill(255, 0, 0);
-    text("Game Over", width / 2, height / 2 - 40);
+    textAlign(CENTER);
+    text("Game Over", width / 2, height / 2);
     textSize(24);
     fill(0);
-    text("High Score: " + highScore, width / 2, height / 2 + 10);
-    text("Press R to Restart", width / 2, height / 2 + 50);
+    text("High Score: " + highScore, width / 2, height / 2 + 40);
+    text("Press R or Tap to Restart", width / 2, height / 2 + 80);
   }
 }
-
 
 function keyPressed() {
   if (gameState === "start" && key === ' ') {
     gameState = "playing";
     return;
   }
+
   if (key === ' ' && player.onGround()) {
     player.jump();
   }
+
   if (gameOver && (key === 'r' || key === 'R')) {
     resetGame();
   }
 }
 
+function touchStarted() {
+  let fs = fullscreen();
+  if (!fs) fullscreen(true);
+
+  if (gameState === "start") {
+    gameState = "playing";
+  } else if (!gameOver && player.onGround()) {
+    player.jump();
+  } else if (gameOver) {
+    resetGame();
+  }
+  return true;
+}
+
+function mousePressed() {
+  touchStarted(); // For some devices that trigger mousePressed on touch
+}
+
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  player.y = height - player.size - 50;
 }
 
 function resetGame() {
@@ -116,20 +134,19 @@ function resetGame() {
   speedMultiplier = 1;
   gameOver = false;
   player = new Player();
-  gameState = "playing";
 }
 
 // Player class
 class Player {
   constructor() {
     this.x = 50;
-    this.y = height - 100;
-    this.vy = 0;
     this.size = 200;
+    this.y = height - this.size - 50;
+    this.vy = 0;
   }
 
   update() {
-    this.vy += 1; // gravity
+    this.vy += 1;
     this.y += this.vy;
     if (this.y > height - this.size - 50) {
       this.y = height - this.size - 50;
