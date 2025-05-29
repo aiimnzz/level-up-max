@@ -34,7 +34,6 @@ function draw() {
     textAlign(CENTER, CENTER);
     fill(255);
     textSize(24);
-    text("Please rotate your phone to portrait mode", width / 2, height / 2);
     return;
 
    // Safer position with padding
