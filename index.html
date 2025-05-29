@@ -1,33 +1,207 @@
 <!DOCTYPE html>
-<html>
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LEVEL UP MAX!</title>
-  
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Max's Runner</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.4.2/lib/p5.min.js"></script>
 </head>
+<body>
+  <script>
+    let bgImg;
+    let bgx = 0;
+    let playerImg;
+    let obstacleImgs = [];
+    let obstacles = [];
+    let score = 0;
+    let speedMultiplier = 1;
+    let gameOver = false;
+    let highScore = 0;
+    let player;
+    let gameSpeed = 6;
+    let gameState = "start";
 
- <style>
-  body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    touch-action: none;
-  }
-  canvas {
-    display: block;
-  }
-</style>
-  
-  
-    <!-- p5.js core -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-    <!-- Optional: p5.sound and p5.collide2D -->
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.2/lib/addons/p5.sound.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.collide2d"></script>
-  </head>
+    function preload() {
+      bgImg = loadImage('background.png');
+      playerImg = loadImage('player.png');
+      obstacleImgs.push(loadImage('obstacle1.png'));
+      obstacleImgs.push(loadImage('obstacle2.png'));
+      obstacleImgs.push(loadImage('obstacle3.png'));
+    }
 
-  <body>
-    <script src="sketch.js"></script>
-  </body>
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      player = new Player();
+    }
+
+    function draw() {
+      background(220);
+
+      if (gameState === "start") {
+        textAlign(CENTER, CENTER);
+        textSize(60);
+        fill(0);
+        text("Max's Runner", width / 2, height / 2 - 100);
+        textSize(24);
+        fill(50);
+        text("Press SPACE to Start", width / 2, height / 2);
+        return;
+      }
+
+      image(bgImg, bgx, 0, width, height);
+      image(bgImg, bgx + width, 0, width, height);
+      bgx -= gameSpeed;
+      if (bgx <= -width) bgx = 0;
+
+      gameSpeed = 6 + speedMultiplier * 5;
+      speedMultiplier += 0.001;
+
+      if (!gameOver) {
+        player.update();
+        player.display();
+
+        if (frameCount % 90 === 0) {
+          obstacles.push(new Obstacle());
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          obstacles[i].update();
+          obstacles[i].display();
+
+          if (obstacles[i].hits(player)) {
+            gameOver = true;
+            if (score > highScore) highScore = score;
+          }
+
+          if (obstacles[i].offscreen()) {
+            obstacles.splice(i, 1);
+            score++;
+          }
+        }
+
+        textAlign(LEFT, TOP);
+        textSize(24);
+        fill(0);
+        text("Score: " + score, 20, 20);
+
+      } else {
+        textAlign(CENTER, CENTER);
+        textSize(48);
+        fill(255, 0, 0);
+        text("Game Over", width / 2, height / 2);
+        textSize(24);
+        fill(0);
+        text("High Score: " + highScore, width / 2, height / 2 + 40);
+        text("Press R to Restart", width / 2, height / 2 + 80);
+      }
+    }
+
+    function keyPressed() {
+      if (gameState === "start" && key === ' ') {
+        gameState = "playing";
+        return;
+      }
+      if (key === ' ' && player.onGround()) {
+        player.jump();
+      }
+      if (gameOver && (key === 'r' || key === 'R')) {
+        resetGame();
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+
+    function resetGame() {
+      obstacles = [];
+      score = 0;
+      speedMultiplier = 1;
+      gameOver = false;
+      player = new Player();
+    }
+
+    class Player {
+      constructor() {
+        this.x = 50;
+        this.y = height - 100;
+        this.vy = 0;
+        this.size = 200;
+      }
+
+      update() {
+        this.vy += 1;
+        this.y += this.vy;
+        if (this.y > height - this.size - 50) {
+          this.y = height - this.size - 50;
+          this.vy = 0;
+        }
+      }
+
+      display() {
+        image(playerImg, this.x, this.y, this.size, this.size);
+      }
+
+      jump() {
+        this.vy = -27;
+      }
+
+      onGround() {
+        return this.y >= height - this.size - 50;
+      }
+    }
+
+    class Obstacle {
+      constructor() {
+        this.size = 150;
+        this.x = width;
+        this.y = height - this.size - 60;
+        this.speed = 9 * speedMultiplier;
+        this.img = random(obstacleImgs);
+      }
+
+      update() {
+        this.x -= this.speed;
+      }
+
+      display() {
+        image(this.img, this.x, this.y, this.size, this.size);
+      }
+
+      hits(player) {
+        let padding = 20;
+        return (
+          player.x + padding < this.x + this.size - padding &&
+          player.x + player.size - padding > this.x + padding &&
+          player.y + padding < this.y + this.size - padding &&
+          player.y + player.size - padding > this.y + padding
+        );
+      }
+
+      offscreen() {
+        return this.x + this.size < 0;
+      }
+    }
+  </script>
+</body>
 </html>
+
