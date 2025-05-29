@@ -22,10 +22,19 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   player = new Player();
-  player.x = width * 0.1;
 }
 
 function draw() {
+  // Optional: Require portrait orientation
+  if (windowWidth > windowHeight) {
+    background(0);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    textSize(24);
+    text("Please rotate your phone to portrait mode", width / 2, height / 2);
+    return;
+  }
+
   background(220);
 
   if (gameState === "start") {
@@ -98,7 +107,6 @@ function keyPressed() {
 
   if (key === ' ' && player.onGround()) {
     player.jump();
-    return false;  // Prevent scrolling on space
   }
 
   if (gameOver && (key === 'r' || key === 'R')) {
@@ -107,9 +115,6 @@ function keyPressed() {
 }
 
 function touchStarted() {
-  let fs = fullscreen();
-  if (!fs) fullscreen(true);
-
   if (gameState === "start") {
     gameState = "playing";
   } else if (!gameOver && player.onGround()) {
@@ -117,11 +122,7 @@ function touchStarted() {
   } else if (gameOver) {
     resetGame();
   }
-  return false;  // Prevent scrolling on mobile tap
-}
-
-function mousePressed() {
-  touchStarted(); // For devices that trigger mousePressed on touch
+  return false;
 }
 
 function windowResized() {
@@ -147,7 +148,7 @@ class Player {
   }
 
   update() {
-    this.vy += 1;
+    this.vy += 1; // gravity
     this.y += this.vy;
     if (this.y > height - this.size - 50) {
       this.y = height - this.size - 50;
