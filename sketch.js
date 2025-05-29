@@ -22,6 +22,9 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   player = new Player();
+
+  // Optional: center player horizontally (adjust based on your game feel)
+  player.x = width * 0.1;
 }
 
 function draw() {
@@ -33,6 +36,14 @@ function draw() {
     textSize(24);
     text("Please rotate your phone to portrait mode", width / 2, height / 2);
     return;
+
+    // For score display
+textAlign(LEFT, TOP);
+text("Score: " + score, 20, 20);
+
+// For game over screen:
+textAlign(CENTER, CENTER);
+
   }
 
   background(220);
