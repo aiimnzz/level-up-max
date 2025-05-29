@@ -20,8 +20,10 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);  // important for mobile retina display consistency
   player = new Player();
   player.x = width * 0.1;
+  textFont('Arial');
 }
 
 function draw() {
@@ -47,7 +49,6 @@ function drawStartScreen() {
 }
 
 function runGame() {
-  // Scroll background
   image(bgImg, bgx, 0, width, height);
   image(bgImg, bgx + width, 0, width, height);
   bgx -= baseGameSpeed + speedMultiplier * 5;
@@ -58,19 +59,16 @@ function runGame() {
   speedMultiplier += 0.001;
   let currentGameSpeed = baseGameSpeed + speedMultiplier * 5;
 
-  // Update and display player
   player.update();
   player.display();
 
-  // Spawn obstacles every 90 frames
   if (frameCount % 90 === 0) {
     obstacles.push(new Obstacle());
   }
 
-  // Update obstacles
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let obs = obstacles[i];
-    obs.speed = currentGameSpeed + 3;  // Dynamically update speed
+    obs.speed = currentGameSpeed + 3;
     obs.update();
     obs.display();
 
@@ -85,7 +83,6 @@ function runGame() {
     }
   }
 
-  // Draw score
   fill(0);
   textSize(min(width, height) / 25);
   textAlign(LEFT, TOP);
@@ -119,6 +116,7 @@ function keyPressed() {
 }
 
 function touchStarted() {
+  // Prevent default to avoid scrolling on mobile
   if (gameState === "start") {
     gameState = "playing";
   } else if (gameState === "playing" && player.onGround()) {
@@ -126,7 +124,7 @@ function touchStarted() {
   } else if (gameState === "gameover") {
     resetGame();
   }
-  return false;
+  return false;  // prevent default scrolling behavior
 }
 
 function windowResized() {
@@ -142,7 +140,6 @@ function resetGame() {
   gameState = "start";
 }
 
-// Player class
 class Player {
   constructor() {
     this.updateSizeAndPosition();
@@ -152,10 +149,9 @@ class Player {
   }
 
   updateSizeAndPosition() {
-    // Adjust player size relative to screen height
-    this.size = height / 4; 
+    this.size = height / 4;
     this.x = width * 0.1;
-    this.y = height - this.size - (height * 0.07); // Ground padding ~7% height
+    this.y = height - this.size - (height * 0.07);
   }
 
   update() {
@@ -173,7 +169,6 @@ class Player {
   }
 
   jump() {
-    // Adjust jump force based on size, so jump feels right on different screen sizes
     this.vy = this.jumpForce * (this.size / 200);
   }
 
@@ -182,10 +177,9 @@ class Player {
   }
 }
 
-// Obstacle class
 class Obstacle {
   constructor() {
-    this.size = height / 6; // Relative size
+    this.size = height / 6;
     this.x = width;
     this.y = height - this.size - (height * 0.07);
     this.speed = baseGameSpeed;
@@ -201,7 +195,7 @@ class Obstacle {
   }
 
   hits(player) {
-    let padding = this.size * 0.13; // ~20 px at base size
+    let padding = this.size * 0.13;
     return (
       player.x + padding < this.x + this.size - padding &&
       player.x + player.size - padding > this.x + padding &&
