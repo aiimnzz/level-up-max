@@ -38,10 +38,10 @@ function draw() {
 
 function drawStartScreen() {
   textAlign(CENTER, CENTER);
-  textSize(60);
+  textSize(min(width, height) / 10);
   fill(0);
   text("Max's Runner", width / 2, height / 2 - 100);
-  textSize(24);
+  textSize(min(width, height) / 30);
   fill(50);
   text("Tap or Press SPACE to Start", width / 2, height / 2);
 }
@@ -87,17 +87,17 @@ function runGame() {
 
   // Draw score
   fill(0);
-  textSize(24);
+  textSize(min(width, height) / 25);
   textAlign(LEFT, TOP);
   text("Score: " + score, 10, 10);
 }
 
 function drawGameOverScreen() {
   textAlign(CENTER, CENTER);
-  textSize(48);
+  textSize(min(width, height) / 15);
   fill(255, 0, 0);
   text("Game Over", width / 2, height / 2);
-  textSize(24);
+  textSize(min(width, height) / 30);
   fill(0);
   text("High Score: " + highScore, width / 2, height / 2 + 40);
   text("Press R or Tap to Restart", width / 2, height / 2 + 80);
@@ -131,8 +131,7 @@ function touchStarted() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  player.y = height - player.size - 50;
-  player.vy = 0;  // Reset velocity to prevent falling through floor
+  player.updateSizeAndPosition();
 }
 
 function resetGame() {
@@ -146,18 +145,23 @@ function resetGame() {
 // Player class
 class Player {
   constructor() {
-    this.size = 200;
-    this.x = width * 0.1;
-    this.y = height - this.size - 50;
+    this.updateSizeAndPosition();
     this.vy = 0;
     this.gravity = 1;
-    this.jumpForce = -27; // Can tweak based on device size if needed
+    this.jumpForce = -27;
+  }
+
+  updateSizeAndPosition() {
+    // Adjust player size relative to screen height
+    this.size = height / 4; 
+    this.x = width * 0.1;
+    this.y = height - this.size - (height * 0.07); // Ground padding ~7% height
   }
 
   update() {
     this.vy += this.gravity;
     this.y += this.vy;
-    let groundY = height - this.size - 50;
+    let groundY = height - this.size - (height * 0.07);
     if (this.y > groundY) {
       this.y = groundY;
       this.vy = 0;
@@ -169,20 +173,21 @@ class Player {
   }
 
   jump() {
-    this.vy = this.jumpForce;
+    // Adjust jump force based on size, so jump feels right on different screen sizes
+    this.vy = this.jumpForce * (this.size / 200);
   }
 
   onGround() {
-    return this.y >= height - this.size - 50;
+    return this.y >= height - this.size - (height * 0.07);
   }
 }
 
 // Obstacle class
 class Obstacle {
   constructor() {
-    this.size = 150;
+    this.size = height / 6; // Relative size
     this.x = width;
-    this.y = height - this.size - 60;
+    this.y = height - this.size - (height * 0.07);
     this.speed = baseGameSpeed;
     this.img = random(obstacleImgs);
   }
@@ -196,7 +201,7 @@ class Obstacle {
   }
 
   hits(player) {
-    let padding = 20;
+    let padding = this.size * 0.13; // ~20 px at base size
     return (
       player.x + padding < this.x + this.size - padding &&
       player.x + player.size - padding > this.x + padding &&
