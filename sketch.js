@@ -37,9 +37,12 @@ function draw() {
     text("Please rotate your phone to portrait mode", width / 2, height / 2);
     return;
 
-    // For score display
+   // Safer position with padding
+let padding = 20;
 textAlign(LEFT, TOP);
-text("Score: " + score, 20, 20);
+textSize(24);
+fill(0);
+text("Score: " + score, padding, padding);
 
 // For game over screen:
 textAlign(CENTER, CENTER);
