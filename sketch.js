@@ -5,10 +5,9 @@ let obstacleImgs = [];
 let obstacles = [];
 let score = 0;
 let speedMultiplier = 1;
-let gameOver = false;
 let highScore = 0;
 let player;
-let gameSpeed = 6;
+let baseGameSpeed = 6;
 let gameState = "start";
 
 function preload() {
@@ -22,94 +21,96 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   player = new Player();
-
-  // Optional: center player horizontally (adjust based on your game feel)
   player.x = width * 0.1;
 }
 
 function draw() {
-  // Optional: Require portrait orientation
+  // Force portrait orientation for gameplay
   if (windowWidth > windowHeight) {
     background(0);
     textAlign(CENTER, CENTER);
     fill(255);
     textSize(24);
+    text("Please rotate your device to portrait", width / 2, height / 2);
     return;
-
-   // Safer position with padding
-let padding = 20;
-textAlign(LEFT, TOP);
-textSize(24);
-fill(0);
-text("Score: " + score, padding, padding);
-
-// For game over screen:
-textAlign(CENTER, CENTER);
-
   }
 
   background(220);
 
   if (gameState === "start") {
-    textAlign(CENTER, CENTER);
-    textSize(60);
-    fill(0);
-    text("Max's Runner", width / 2, height / 2 - 100);
-    textSize(24);
-    fill(50);
-    text("Tap or Press SPACE to Start", width / 2, height / 2);
-    return;
+    drawStartScreen();
+  } else if (gameState === "playing") {
+    runGame();
+  } else if (gameState === "gameover") {
+    drawGameOverScreen();
   }
+}
 
-  // Scrolling background
+function drawStartScreen() {
+  textAlign(CENTER, CENTER);
+  textSize(60);
+  fill(0);
+  text("Max's Runner", width / 2, height / 2 - 100);
+  textSize(24);
+  fill(50);
+  text("Tap or Press SPACE to Start", width / 2, height / 2);
+}
+
+function runGame() {
+  // Scroll background
   image(bgImg, bgx, 0, width, height);
   image(bgImg, bgx + width, 0, width, height);
-  bgx -= gameSpeed;
+  bgx -= baseGameSpeed + speedMultiplier * 5;
   if (bgx <= -width) {
     bgx = 0;
   }
 
-  gameSpeed = 6 + speedMultiplier * 5;
+  speedMultiplier += 0.001;
+  let currentGameSpeed = baseGameSpeed + speedMultiplier * 5;
 
-  if (!gameOver) {
-    speedMultiplier += 0.001;
-    player.update();
-    player.display();
+  // Update and display player
+  player.update();
+  player.display();
 
-    if (frameCount % 90 === 0) {
-      obstacles.push(new Obstacle());
-    }
-
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      obstacles[i].update();
-      obstacles[i].display();
-
-      if (obstacles[i].hits(player)) {
-        gameOver = true;
-        if (score > highScore) {
-          highScore = score;
-        }
-      }
-
-      if (obstacles[i].offscreen()) {
-        obstacles.splice(i, 1);
-        score++;
-      }
-    }
-
-    fill(0);
-    textSize(24);
-    text("Score: " + score, 10, 30);
-  } else {
-    textSize(48);
-    fill(255, 0, 0);
-    textAlign(CENTER);
-    text("Game Over", width / 2, height / 2);
-    textSize(24);
-    fill(0);
-    text("High Score: " + highScore, width / 2, height / 2 + 40);
-    text("Press R or Tap to Restart", width / 2, height / 2 + 80);
+  // Spawn obstacles every 90 frames
+  if (frameCount % 90 === 0) {
+    obstacles.push(new Obstacle());
   }
+
+  // Update obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let obs = obstacles[i];
+    obs.speed = currentGameSpeed + 3;  // Dynamically update speed
+    obs.update();
+    obs.display();
+
+    if (obs.hits(player)) {
+      gameState = "gameover";
+      if (score > highScore) highScore = score;
+    }
+
+    if (obs.offscreen()) {
+      obstacles.splice(i, 1);
+      score++;
+    }
+  }
+
+  // Draw score
+  fill(0);
+  textSize(24);
+  textAlign(LEFT, TOP);
+  text("Score: " + score, 10, 10);
+}
+
+function drawGameOverScreen() {
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  fill(255, 0, 0);
+  text("Game Over", width / 2, height / 2);
+  textSize(24);
+  fill(0);
+  text("High Score: " + highScore, width / 2, height / 2 + 40);
+  text("Press R or Tap to Restart", width / 2, height / 2 + 80);
 }
 
 function keyPressed() {
@@ -118,11 +119,11 @@ function keyPressed() {
     return;
   }
 
-  if (key === ' ' && player.onGround()) {
+  if (gameState === "playing" && key === ' ' && player.onGround()) {
     player.jump();
   }
 
-  if (gameOver && (key === 'r' || key === 'R')) {
+  if (gameState === "gameover" && (key === 'r' || key === 'R')) {
     resetGame();
   }
 }
@@ -130,9 +131,9 @@ function keyPressed() {
 function touchStarted() {
   if (gameState === "start") {
     gameState = "playing";
-  } else if (!gameOver && player.onGround()) {
+  } else if (gameState === "playing" && player.onGround()) {
     player.jump();
-  } else if (gameOver) {
+  } else if (gameState === "gameover") {
     resetGame();
   }
   return false;
@@ -141,30 +142,34 @@ function touchStarted() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   player.y = height - player.size - 50;
+  player.vy = 0;  // Reset velocity to prevent falling through floor
 }
 
 function resetGame() {
   obstacles = [];
   score = 0;
   speedMultiplier = 1;
-  gameOver = false;
   player = new Player();
+  gameState = "start";
 }
 
 // Player class
 class Player {
   constructor() {
-    this.x = 50;
     this.size = 200;
+    this.x = width * 0.1;
     this.y = height - this.size - 50;
     this.vy = 0;
+    this.gravity = 1;
+    this.jumpForce = -27; // Can tweak based on device size if needed
   }
 
   update() {
-    this.vy += 1; // gravity
+    this.vy += this.gravity;
     this.y += this.vy;
-    if (this.y > height - this.size - 50) {
-      this.y = height - this.size - 50;
+    let groundY = height - this.size - 50;
+    if (this.y > groundY) {
+      this.y = groundY;
       this.vy = 0;
     }
   }
@@ -174,7 +179,7 @@ class Player {
   }
 
   jump() {
-    this.vy = -27;
+    this.vy = this.jumpForce;
   }
 
   onGround() {
@@ -188,7 +193,7 @@ class Obstacle {
     this.size = 150;
     this.x = width;
     this.y = height - this.size - 60;
-    this.speed = 9 * speedMultiplier;
+    this.speed = baseGameSpeed;
     this.img = random(obstacleImgs);
   }
 
@@ -214,4 +219,3 @@ class Obstacle {
     return this.x + this.size < 0;
   }
 }
-
