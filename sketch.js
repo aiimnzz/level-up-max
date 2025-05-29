@@ -113,13 +113,14 @@ function keyPressed() {
 function touchStarted() {
   if (gameState === "start") {
     gameState = "playing";
-  } else if (gameState === "playing" && player.onGround()) {
+  } else if (!gameOver && player.onGround()) {
     player.jump();
-  } else if (gameState === "gameover") {
+  } else if (gameOver) {
     resetGame();
   }
-  return true;
+  return true; // ✅ or remove this line entirely
 }
+
 
 function mousePressed() {
   // fallback for devices that don’t trigger touchStarted
