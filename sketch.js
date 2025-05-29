@@ -25,16 +25,6 @@ function setup() {
 }
 
 function draw() {
-  // Force portrait orientation for gameplay
-  if (windowWidth > windowHeight) {
-    background(0);
-    textAlign(CENTER, CENTER);
-    fill(255);
-    textSize(24);
-    text("Please rotate your device to portrait", width / 2, height / 2);
-    return;
-  }
-
   background(220);
 
   if (gameState === "start") {
