@@ -1,21 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      touch-action: none; /* Important for mobile taps */
-    }
-    canvas {
-      display: block;
-    }
-  </style>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEVEL UP MAX!</title>
+  
 </head>
 
-<body>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <script src="sketch.js"></script>
-</body>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #f6f6f6;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+
+    <!-- p5.js core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+    <!-- Optional: p5.sound and p5.collide2D -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.2/lib/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.collide2d"></script>
+  </head>
+
+  <body>
+    <script src="sketch.js"></script>
+  </body>
 </html>
